@@ -1,0 +1,126 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Module implementing content subscription customization.
+ */
+ 
+/**
+ * Implements hook_menu().
+ */
+function datacatalog_subscription_menu() {
+  $items = array();
+  $items['og_cstm_subscrptn'] = array(
+    'type'             => MENU_CALLBACK,
+    'page callback'    => 'cstm_grp_subscrptn',
+	'access arguments' => array('access content'),
+  );
+  $items['nd_cstm_subscrptn'] = array(
+    'type'             => MENU_CALLBACK,
+    'page callback'    => 'cstm_nod_subscrptn',
+	'access arguments' => array('access content'),
+  );
+  return $items;
+}
+
+/**
+ * this function allows user ajax based subscription to any og group
+ * @return type 
+ * the action which is performed currently
+ */
+function cstm_grp_subscrptn(){
+  if(isset($_REQUEST["uid"]) and $_REQUEST["uid"]!="") {
+    $uid = $_REQUEST["uid"];
+  }else {
+    global $user;
+    $uid = $user->uid;
+  }
+  $type = $_REQUEST["action"];
+  $gid = $_REQUEST["gid"];
+
+  $group_type = 'node'; 
+  $entity_type = 'user'; 
+  $values = array(
+    'entity_type' => 'user',
+    'entity' => $uid,
+    'field_name' => FALSE,
+    'state' => 1,
+  );
+  switch ($type) {
+    case 'subscribe':
+    $values['state'] = 2;
+    og_group($group_type, $gid, $values);
+    break;
+    case  'approve':
+    $values['state'] = 1;
+    og_group($group_type, $gid, $values);
+    break;
+    case 'delete':
+    og_ungroup($group_type, $gid, $entity_type, $uid);
+    break;
+	default:
+    break;
+  }
+  echo $type;
+}
+
+/**
+ * this function allows user ajax based subscription to a node
+ * @return type 
+ * the action which is performed currently
+ */
+function cstm_nod_subscrptn(){
+  global $user;
+  $uid = $user->uid;
+  $type = $_REQUEST["action"];
+  $nid = $_REQUEST["nid"];
+  $args = array(0 => 'node', 1 => 'nid', 2 => $nid, 3 => -1, 4 => $uid, 5 => 1, 6 => 1, 7 => 1);
+  switch ($type) {
+    case 'sub':
+    call_user_func_array('subscriptions_write_subscription', $args);
+    break;
+    case  'unsub':
+    subscriptions_delete($args['4'], $args['0'], $args['1'], $args['2'], $args['3']); 
+    break;
+	default:
+    break;
+  }
+  echo $type;
+}
+
+/**
+ * this function checks if a user is subscribed against a node or not
+ * @param uid
+ * holds the uid of current logged user
+ * @param nid
+ * holds the nid 
+ * @return boolean  
+ * user is subscribed or not
+ */
+function chk_usr_nd_subscrptn($uid,$nid) {
+  foreach (array(
+    db_query("SELECT sid, module, field, value, author_uid, send_interval, send_updates, send_comments FROM {subscriptions} WHERE module = :module AND field = :field AND value = :value AND recipient_uid = :recipient_uid", array(
+      ':module' => 'node',
+      ':field' => 'nid',
+      ':value' => $nid,
+      ':recipient_uid' => $uid
+    ), array('fetch' => PDO::FETCH_ASSOC)),
+    db_query("SELECT sid, module, field, value, author_uid, send_interval, send_updates, send_comments FROM {subscriptions} WHERE module = :module AND field <> :field AND recipient_uid = :recipient_uid", array(
+      ':module' => 'node',
+      ':field' => 'nid',
+      ':recipient_uid' => $uid
+    ), array('fetch' => PDO::FETCH_ASSOC)),
+  ) as $result) {
+    foreach ($result as $s) {
+      $subscriptions[$s['field']][$s['value']][$s['author_uid']] = $s;
+    }
+  }
+  if (is_array($subscriptions)) {
+     return 1;
+  }
+  else {
+     return 0;
+  }
+}
+

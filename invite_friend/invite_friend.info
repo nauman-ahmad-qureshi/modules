@@ -1,0 +1,9 @@
+;$id$
+
+name = Invite Friend
+description = Invite Friend is a custom module used to Invite your friends , family members through E-mails.
+package = public-action
+version = VERSION
+core = 7.x
+
+dependencies[] = form_validation

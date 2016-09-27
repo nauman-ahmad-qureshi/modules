@@ -1,0 +1,190 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * This modules provides the invite friends functionality,
+ *
+ */
+
+/**
+ *  Implements hook_permission(). 
+ *  Defining permission  
+ */  
+function invite_friend_permission(){
+  $permission = array(
+    'view invite friend' => array(
+      'title'       => t('Administer permission multiple invitation'),
+      'description' => 'Users with this permission can send invitation to his friends',
+    ),                    
+  );
+  return $permission;
+}
+
+/**
+ *  Creating form using drupal form api
+ *  @param form  
+ *  an assoicative array holding form elements 
+ *  @param form_state 
+ *  to get values from form fields.
+ *  @return form  
+ *  returns form 
+ */
+function invite_friend_custom_form($form, $form_state) {
+  $form['email'] = array(
+    '#type'        => 'textarea',
+    '#title'       => 'Enter e-mail addresses for people you would like to invite',
+    '#prefix'      => '<div id="email-field-wrapper">',
+    '#suffix'      => '</div>',
+	'#description' => t('Separate e-mail addresses with commas, spaces are not allowed. For example bob@bob.com, tom@tom.com'),
+    '#required'    => TRUE,
+    '#wysiwyg'     => FALSE,
+  );
+  $form['actions']['submit_form'] = array(
+    '#type'     => 'submit',
+    '#value'    => t('Send Email'),
+    '#id'       => 'invt-frnds-submit',
+    '#ajax'     => array(
+      'wrapper'   => 'invite-friend-custom-form',
+      'callback'  => 'inv_form_ajax_callback',
+      'progress'  => array(
+        'type'      => 'throbber',
+        'message'   => '',
+      ),
+    ),
+  );
+  return $form;
+}
+
+/**
+ *  named form submit handler i.e. a function to send emails
+ *  @param $form  
+ *  an assoicative array holding form elements 
+ *  @param $form_state 
+ *  to get values from form fields.
+ */
+function invite_friend_custom_form_submit($form, &$form_state) {
+  global $user;
+  $email_content = get_mail_content($form_state);
+  $params = array('body' => $email_content);
+  $key = 'invite_friend_email';
+  $to = $form_state['values']['email'];
+  $from = $user->mail;
+  $mail = drupal_mail('invite_friend', $key, $to, language_default(), $params, $from);
+  drupal_set_message("Invitation has been sent, thanks");
+}
+
+/**
+ *  AJAX callback for invite_friend_custom_form() submissions.
+ *  @param $form  
+ *  an assoicative array holding form elements 
+ *  @param $form_state 
+ *  to get values from form fields.
+ */
+function inv_form_ajax_callback($form, &$form_state) {
+  // If there was a form validation error, re-render the entire form.
+  if (!$form_state['executed']) {
+    return $form;
+  }
+  // Otherwise, return a fresh copy of the form, so the user may post additional
+  // feedback.
+  // Reset the static cache of drupal_html_id().
+  // @see drupal_process_form()
+  // @see drupal_html_id()
+  $seen_ids = &drupal_static('drupal_html_id');
+  $seen_ids = array();
+
+  // Prevent the form from being processed again.
+  // @see drupal_build_form()
+  list($form, $new_form_state) = ajax_get_form();
+  $new_form_state['input'] = array();
+  drupal_process_form($form['#form_id'], $form, $new_form_state);
+  // Return AJAX commands in order to output the special success message.
+  // @see ajax_deliver()
+  $build = array('#type' => 'ajax');
+  $html = drupal_render($form);
+  $build['#commands'][] = ajax_command_insert(NULL, $html);
+
+  // A successful form submission normally means that there were no errors, so
+  // we only render status messages.
+  $messages = drupal_get_messages();
+  $messages += array('status' => array());
+  $messages = implode('<br />', $messages['status']);
+  $html = '<div id="invt-frnds-status-message">' . $messages . '</div>';
+  $build['#commands'][] = ajax_command_append('#block-invt-frd-form', $html);
+  return $build;
+}
+
+/**
+ * Implements hook_mail()
+ * @param $key 
+ * to decide which email body to sent on basis of key parameter inacese of multiple email content
+ * @param $message 
+ * the email content to be sent.Message array contains 'subject and body ' for the email.
+ * @param $params 
+ * using to get the cusotm email content 
+ */
+function invite_friend_mail($key, &$message, $params) {
+  $language = $message['language'];
+  switch ($key) {
+    //switching on $key lets you create variations of the email based on the $key parameter
+    case 'invite_friend_email':
+      $message['subject'] = t('Lenzplus Invitation');
+      //the email body is here, inside the $message array
+      $message['body'][] = $params['body'];
+      break;
+  }
+}
+
+/**
+ * function to get the html formatted email content
+ * @param $form_state 
+ * to get values from form fields.
+ * @return $body  
+ * return the html email content 
+ */
+function get_mail_content($form_state) {
+  global $base_url;
+  $email_to = $form_state['values']['email'];
+  //$pos = strpos($email_to, '@');
+  //$user_name = substr($email_to, 0, $pos);
+  $body = '';
+  global $user;
+  $body .= 'Hi,
+  
+'.$user->name.' has invited you to join on '.$base_url.'
+
+Thanks,
+Lenzplus Team';
+  return $body;
+}
+
+/**
+ * Implements hook_theme()
+ */
+function invite_friend_theme() {
+  return array(
+    'invite_friend_form_display' => array(
+      'template' => 'invite-friend-form-display',
+      'variables' => array('title' => NULL, 'content' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implements hook_page_build()
+ * @param $page 
+ * Nested array of renderable elements that make up the page  
+ */
+function invite_friend_page_build(&$page) {
+  if (user_access('view invite friend')) {
+    $page['page_bottom']['invt_frnds'] = array(
+      '#theme' => 'invite_friend_form_display',
+      '#title' => t('Invite Friends'),
+      '#content' => drupal_get_form('invite_friend_custom_form'),
+    );
+    $path = drupal_get_path('module', 'invite_friend');
+    $page['page_bottom']['invt_frnds']['#attached']['css'][] = $path . '/css/invite_friend.css';
+    $page['page_bottom']['invt_frnds']['#attached']['js'][] = $path . '/js/invite_friend.js';
+  }
+}

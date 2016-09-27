@@ -1,0 +1,8 @@
+;$id$
+
+name = Datacatalog Subscription
+description = To have customize subscription links. 
+core = 7.x
+package = Datacatalog
+version = 7.x
+

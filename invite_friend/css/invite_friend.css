@@ -1,0 +1,104 @@
+#block-invt-frd-form {
+  bottom: 0px;
+  overflow: hidden;
+  position: fixed;
+  right: 352px;
+  display:none;
+  z-index:99!important;
+}
+#block-invt-frd-form #invt-frd-form-toggle {
+  height:14px;
+  width:24px;
+  float:right;
+  padding-right:10px;
+}
+#block-invt-frd-form #invt-frd-form-toggle img {
+  margin-top:-5px;
+  vertical-align: middle;
+}
+
+#invt-frnds-status-message,
+#block-invt-frd-form h2 {
+   background: none repeat scroll 0 0 #4b5557;
+   font-family: 'CenturyGothic';
+   color: #FFFFFF;
+   font-size: 12px;
+   padding: 11px 0px 7px 12px;
+   text-align: left;
+   float:right;
+   width:293px;
+   margin-bottom:0px;
+   font-weight: normal;
+   line-height: 1.1;
+}
+
+#block-invt-frd-form form label{
+  font-family: 'CenturyGothic';
+  color: #495564!important;
+  font-size: 12px;
+  line-height:14px;
+  margin-top:-1px;
+  margin-left:6px;
+  margin-bottom:7px;
+  
+}
+
+
+#block-invt-frd-form form {
+  border: 1px solid #dddddd;
+  padding: 6px;
+  background-color: #fff;
+  opacity: 0.9;
+  max-width: 293px;
+  float:left;
+}
+#block-invt-frd-form .grippie{
+  width:273px;
+  margin:0px auto;
+}
+.description {
+  font-family: 'CenturyGothic';
+  color: #495564;
+  font-size: 11px!important;
+  line-height:14px!important;
+  width:264px;
+  margin:5px 0px 3px 6px;
+}
+#block-invt-frd-form #edit-email--2,
+#block-invt-frd-form #edit-email {
+  width:273px!important;
+  height:97px;	
+  border: 1px solid #dddddd;
+  margin:0px auto;
+  font-family: 'CenturyGothic'!important;
+  font-size: 11px!important;
+}
+#block-invt-frd-form  .messages.error{
+  font-family: 'CenturyGothic';
+  font-size: 11px!important;
+  line-height:14px;
+}
+#block-invt-frd-form input#invt-frnds-submit {
+  background: url("../images/new_but_bg.png") repeat-x scroll 0 0 rgba(0, 0, 0, 0) !important;
+  border: medium none !important;
+  color: #ffffff !important;
+  margin-left: 3px;
+  padding-bottom: 6px;
+  padding-top: 7px;
+  text-shadow: 0 0 0 #ffffff !important;
+  width: 98px;
+  font-family: 'CenturyGothic'!important;
+  color: #ffffff!important;
+  font-size: 11px!important;
+  font-weight:normal;	
+  margin-bottom:5px;	
+}
+
+#block-invt-frd-form .form-required {
+  color:#ff4242;
+}
+#block-invt-frd-form .ajax-progress .throbber {
+    background: url("../images/throbber.gif") no-repeat scroll left center transparent;
+    height: 16px;
+    width: 16px;
+}
