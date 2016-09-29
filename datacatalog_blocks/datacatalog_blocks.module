@@ -5,7 +5,7 @@
  * @file
  * This module provides blocks implementation.
  */
-module_load_include('php', 'datacatalog_blocks', 'csvdict.class'); 
+module_load_include('inc', 'datacatalog_blocks', 'csvdict.class'); 
 
 /**
  * Implements hook_menu().
